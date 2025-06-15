@@ -3,39 +3,43 @@ import { useState } from 'react';
 
 export default function Home() {
   const [review, setReview] = useState('');
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleCheckReview = () => {
-    // Simple mock logic (you can later connect to API)
-    const lowerReview = review.toLowerCase();
-    if (lowerReview.includes('amazing') || lowerReview.includes('life-changing') || lowerReview.length < 30) {
-      setResult('⚠️ This review might be fake or AI-generated.');
-    } else {
-      setResult('✅ This review looks genuine.');
+  const handleCheck = async () => {
+    setLoading(true);
+    setResult('');
+    try {
+      const response = await fetch('/api/detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ review }),
+      });
+
+      const data = await response.json();
+      setResult(data.result);
+    } catch (error) {
+      setResult('Error occurred.');
     }
+    setLoading(false);
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
       <h1>AI Fake Product Review Detector</h1>
-      <p>Paste any product review below to check if it's genuine or potentially fake.</p>
-
       <textarea
-        placeholder="Enter your product review here..."
+        placeholder="Paste a product review here..."
         value={review}
         onChange={(e) => setReview(e.target.value)}
-        rows={5}
-        style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+        rows={6}
+        style={{ width: '100%', marginBottom: '1rem' }}
       />
-
-      <br />
-      <button onClick={handleCheckReview} style={{ padding: '10px 20px' }}>
-        Check Review
+      <button onClick={handleCheck} disabled={loading}>
+        {loading ? 'Analyzing...' : 'Check Review'}
       </button>
-
       {result && (
-        <div style={{ marginTop: '20px', fontWeight: 'bold' }}>
-          Result: {result}
+        <div style={{ marginTop: '1rem', backgroundColor: '#f0f0f0', padding: '1rem' }}>
+          <strong>Result:</strong> {result}
         </div>
       )}
     </div>
